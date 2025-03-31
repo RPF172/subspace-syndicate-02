@@ -1,0 +1,151 @@
+model CreatorApplication {
+  id              String    @id @default(cuid())
+  userId          String
+  status          String    // "pending", "approved", "rejected"
+  isOver18        Boolean
+  agreesToTerms   Boolean
+  dateSubmitted   DateTime
+  
+  // Relations to other pieces of the application
+  identity        Identity?
+  taxInfo         TaxInfo?
+  paymentInfo     PaymentInfo?
+  creatorProfile  CreatorProfile?
+  agreement       Agreement?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Identity {
+  id                   String    @id @default(cuid())
+  applicationId        String    @unique
+  application          CreatorApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fullName             String
+  dateOfBirth          DateTime
+  countryOfResidence   String
+  governmentIdFrontUrl String
+  governmentIdBackUrl  String
+  selfieUrl            String
+  
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model TaxInfo {
+  id                 String    @id @default(cuid())
+  applicationId      String    @unique
+  application        CreatorApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  isUSCitizen        Boolean
+  taxCountry         String
+  taxId              String    // Consider encryption for sensitive data
+  businessName       String?
+  taxAddress         String
+  taxClassification  String
+  
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model PaymentInfo {
+  id                 String    @id @default(cuid())
+  applicationId      String    @unique
+  application        CreatorApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  stripeConnectId    String
+  payoutCurrency     String
+  payoutSchedule     String
+  
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model CreatorProfile {
+  id                 String    @id @default(cuid())
+  applicationId      String    @unique
+  application        CreatorApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  displayName        String    @unique
+  profilePhotoUrl    String
+  bio                String    @db.Text
+  contentCategories  String[]
+  
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Agreement {
+  id                 String    @id @default(cuid())
+  applicationId      String    @unique
+  application        CreatorApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  agreesToAllDocs    Boolean
+  signature          String
+  signatureDate      DateTime
+  
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  userId    String
+  sender    String
+  title     String
+  content   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+0}0
+0
+0model TokenMetadata {
+  id         String   @id @default(cuid())
+  tokenId    String   @unique
+  userId     String
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  isRevoked  Boolean  @default(false)
+  revokedAt  DateTime?
+  revokedBy  String?
+  lastUsedAt DateTime?
+
+  @@index([userId])
+  @@index([tokenId])
+}
+
+model RevokedToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  tokenId   String   @unique
+  userId    String
+  revokedAt DateTime @default(now())
+  revokedBy String
+  reason    String?
+
+  @@index([userId])
+  @@index([tokenId])
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  role      String   // 'admin', 'manager', 'viewer'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model FileAccessLog {
+  id            String   @id @default(cuid())
+  applicationId String
+  fileType      String
+  accessedBy    String
+  accessTime    DateTime @default(now())
+  expiresAt     DateTime
+  ipAddress     String?
+  userAgent     String?
+
+  @@index([applicationId])
+  @@index([accessedBy])
+  @@index([accessTime])
+} 
