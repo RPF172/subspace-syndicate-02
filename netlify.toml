@@ -10,6 +10,14 @@
 [build.environment]
   NODE_VERSION = "20"
 
+[context.production.environment]
+  VITE_SUPABASE_URL = "https://bggqlewmggcpzhogdkrn.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnZ3FsZXdtZ2djcHpob2dka3JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1NDkzMDIsImV4cCI6MjA2ODEyNTMwMn0.4e9jC5JLueY8cKy-QPg8lMN3dsEPFF6hSK3fvDSxwrQ"
+
+[context.development.environment]
+  VITE_SUPABASE_URL = "https://bggqlewmggcpzhogdkrn.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnZ3FsZXdtZ2djcHpob2dka3JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1NDkzMDIsImV4cCI6MjA2ODEyNTMwMn0.4e9jC5JLueY8cKy-QPg8lMN3dsEPFF6hSK3fvDSxwrQ"
+
 [[headers]]
   for = "/*"
   [headers.values]

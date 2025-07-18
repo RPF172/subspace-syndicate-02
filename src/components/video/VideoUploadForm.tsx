@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, ensureBucketExists } from '@/integrations/supabase/client';
+import { validateFileSecurely, sanitizeFileName } from '@/utils/fileValidation';
+import { useRateLimit, RATE_LIMITS } from '@/hooks/useRateLimit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -37,6 +39,7 @@ type VideoCategory = 'tutorial' | 'scene' | 'event' | 'other';
 const VideoUploadForm = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const uploadRateLimit = useRateLimit(RATE_LIMITS.FILE_UPLOAD);
   
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -90,28 +93,76 @@ const VideoUploadForm = () => {
     }
   }, [leavePage, leaveDestination, navigate]);
 
-  const handleVideoSelect = (files: FileList | null) => {
+  const handleVideoSelect = async (files: FileList | null) => {
     if (files && files.length > 0) {
       const file = files[0];
-      if (!['video/mp4', 'video/quicktime', 'video/avi', 'video/x-msvideo'].includes(file.type)) {
+      
+      // Check rate limit
+      if (!uploadRateLimit.checkRateLimit()) {
         toast({
-          title: "Unsupported video format",
-          description: "Please upload an MP4, MOV, or AVI file.",
+          title: "Rate limit exceeded",
+          description: `Too many upload attempts. Please wait ${Math.ceil((uploadRateLimit.resetTime! - Date.now()) / 1000)} seconds.`,
           variant: "destructive"
         });
         return;
       }
-      setVideoFile(file);
+      
+      // Secure file validation
+      const validation = await validateFileSecurely(file);
+      
+      if (!validation.valid) {
+        toast({
+          title: "Invalid file",
+          description: validation.error,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (validation.warnings?.length) {
+        validation.warnings.forEach(warning => {
+          toast({
+            title: "Warning",
+            description: warning,
+            variant: "default"
+          });
+        });
+      }
+
+      // Sanitize file name
+      const sanitizedFile = new File([file], sanitizeFileName(file.name), {
+        type: file.type,
+        lastModified: file.lastModified,
+      });
+
+      setVideoFile(sanitizedFile);
+      
+      // Create video element to get duration
+      const video = document.createElement('video');
+      const url = URL.createObjectURL(sanitizedFile);
+      video.src = url;
+      
+      video.onloadedmetadata = () => {
+        const totalSeconds = Math.floor(video.duration);
+        setDuration(totalSeconds);
+        setMinutes(Math.floor(totalSeconds / 60));
+        setSeconds(totalSeconds % 60);
+        URL.revokeObjectURL(url);
+      };
     }
   };
 
-  const handleThumbnailSelect = (files: FileList | null) => {
+  const handleThumbnailSelect = async (files: FileList | null) => {
     if (files && files.length > 0) {
       const file = files[0];
-      if (!file.type.startsWith('image/')) {
+      
+      // Secure file validation for images
+      const validation = await validateFileSecurely(file);
+      
+      if (!validation.valid) {
         toast({
-          title: "Unsupported file format",
-          description: "Please upload an image file for the thumbnail.",
+          title: "Invalid thumbnail file",
+          description: validation.error,
           variant: "destructive"
         });
         return;

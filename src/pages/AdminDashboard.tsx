@@ -2,30 +2,13 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminVerification } from '@/hooks/useAdminVerification';
 import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
 import AdminCreatorApplications from '@/components/admin/AdminCreatorApplications';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
 
 const AdminDashboard = () => {
   const { user, loading } = useAuth();
-  
-  // Check if the user is an admin
-  const { data: isAdmin, isLoading: isAdminLoading } = useQuery({
-    queryKey: ['isAdmin', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      
-      const { data } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', user.id)
-        .single();
-      
-      return data?.is_admin || false;
-    },
-    enabled: !!user?.id && !loading,
-  });
+  const { data: isAdmin, isLoading: isAdminLoading, error } = useAdminVerification();
   
   // If loading, show a loading indicator
   if (loading || isAdminLoading) {
@@ -38,8 +21,8 @@ const AdminDashboard = () => {
     );
   }
   
-  // If not admin, redirect to dashboard
-  if (!isAdmin) {
+  // If not authenticated or admin verification failed, redirect
+  if (!user || error || !isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
   
