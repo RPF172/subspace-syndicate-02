@@ -1022,6 +1022,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          user_id: string;
+          email: string;
+          username: string;
+          birthday: string;
+          user_role: string;
+          orientation: string;
+          location: string;
+          visibility: string;
+        };
+        Insert: {
+          user_id: string;
+          email: string;
+          username: string;
+          birthday: string;
+          user_role: string;
+          orientation: string;
+          location: string;
+          visibility?: string;
+        };
+        Update: {
+          user_id?: string;
+          email?: string;
+          username?: string;
+          birthday?: string;
+          user_role?: string;
+          orientation?: string;
+          location?: string;
+          visibility?: string;
+        };
+        Relationships: [];
+      }
     }
     Views: {
       trending_hashtags: {
@@ -1108,7 +1141,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {

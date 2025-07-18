@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         visibility: userData.visibility || 'Public'
       };
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -72,12 +72,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) throw error;
-      
+
+      // Insert into user_profiles if user was created
+      if (data?.user) {
+        const { id, email: userEmail } = data.user;
+        const { username, birthday, user_role, orientation, location, visibility } = metadata;
+        const { error: profileError } = await supabase.from('user_profiles').insert([
+          {
+            user_id: id,
+            email: userEmail,
+            username,
+            birthday,
+            user_role,
+            orientation,
+            location,
+            visibility: visibility || 'Public',
+          },
+        ]);
+        if (profileError) {
+          toast({
+            title: "Profile creation error",
+            description: profileError.message,
+            variant: "destructive",
+          });
+        }
+      }
+
       toast({
         title: "Registration successful!",
         description: "Please check your email to confirm your account.",
       });
-      
       // Navigate in the component using this function
     } catch (error: any) {
       toast({

@@ -1,7 +1,12 @@
 
 import React, { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
-import Hero from '@/components/Hero';
+import HeroSection from '../components/HeroSection';
+import { Button } from '@/components/ui/button';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Clip } from '@/components/ui/icons';
 import About from '@/components/About';
 import Features from '@/components/Features';
 import Creators from '@/components/Creators';
@@ -23,7 +28,7 @@ const Index = () => {
       className="min-h-screen bg-abyss overflow-x-hidden"
     >
       <Navbar />
-      <Hero />
+      <HeroSection />
       <About />
       <Features />
       <Creators />
